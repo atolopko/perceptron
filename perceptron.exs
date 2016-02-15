@@ -1,6 +1,3 @@
-# TODO: Detect non-linearly separable data (avoid
-# infinite iteration)
-
 defmodule Perceptron do
 
   def dot_prod(v1, v2) do
@@ -19,7 +16,8 @@ defmodule Perceptron do
   end
 
   def vec_to_s(v) do
-    Enum.join(v, ",")
+    fmt = fn n -> Float.round((n * 1.0), 3) end
+    Enum.map(v, fmt) |> Enum.join(",")
   end
 
   def sign(n) do
@@ -68,7 +66,7 @@ defmodule Perceptron do
       nil -> w
       x ->
         IO.puts "n: #{n}\tw: #{vec_to_s(w)}\tnorm_w: #{vec_to_s(normalize_weights(w))}\t" <>
-          # "dot_prod=#{dot_prod(w, [1 | x])}" <>
+          "dot_prod=#{dot_prod(w, [1 | x])}" <>
           "\tmisclassified: #{vec_to_s(x)} -> #{h(x, w)}"
         learn_weights(d, improve_weights(w, [1 | x], d[x]), n + 1)
     end
