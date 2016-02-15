@@ -1,3 +1,5 @@
+require IEx
+
 defmodule Perceptron do
 
   def dot_prod(v1, v2) do
@@ -33,14 +35,24 @@ defmodule Perceptron do
     sign(dot_prod(w, [1 | x]))
   end
 
-  def first_misclassified(d, w) do
-    Enum.find(Map.keys(d), fn(x) -> h(x, w) != d[x] end)
+  def misclassified?(x, y, w) do
+    h(x, w) != y
+  end
+
+  def log(x, w, n) do
+    IO.puts "n: #{n}\tw: #{vec_to_s(w)}\tnorm_w: #{vec_to_s(normalize_weights(w))}\t" <>
+      "dot_prod=#{dot_prod(w, [1 | x])}" <>
+      "\tmisclassified: #{vec_to_s(x)} -> #{h(x, w)}"
   end
 
   # Perceptron learning algorithm
   # w(t+1) = w(t) + (y(t) * x(t))
-  def improve_weights(w, x, y) do
-    vec_add(w, vec_scale(x, y))
+  def improve_weights(x, y, w) do
+    if misclassified?(x, y, w) do
+      vec_add(w, vec_scale([1 | x], y))
+    else
+      w
+    end
   end
 
   def normalize_weights(w) do
@@ -57,18 +69,16 @@ defmodule Perceptron do
     learn_weights(d, [0, 0, 0], 0)
   end
 
-  def learn_weights(_, _, n) when n == 1024 do
+  def learn_weights(_, _, 1024) do
     nil
   end
-  
+
   def learn_weights(d, w, n) do
-    case first_misclassified(d, w) do
-      nil -> w
-      x ->
-        IO.puts "n: #{n}\tw: #{vec_to_s(w)}\tnorm_w: #{vec_to_s(normalize_weights(w))}\t" <>
-          "dot_prod=#{dot_prod(w, [1 | x])}" <>
-          "\tmisclassified: #{vec_to_s(x)} -> #{h(x, w)}"
-        learn_weights(d, improve_weights(w, [1 | x], d[x]), n + 1)
+    w2 = Enum.reduce(d, w, fn({x, y}, w) -> log(x, w, n); improve_weights(x, y, w) end)
+    if w == w2 do
+      w
+    else
+      learn_weights(d, w, n + 1)
     end
   end
 
@@ -97,4 +107,3 @@ defmodule Example do
     end
   end
 end
-
